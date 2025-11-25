@@ -428,12 +428,12 @@ export default function Index() {
             <p className="text-muted-foreground">Выбери удобный для тебя тариф</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {TARIFFS.map((tariff) => (
-              <Card key={tariff.id} className="neon-box-orange">
+            {tariffs.map((tariff) => (
+              <Card key={tariff.tariff_id} className="neon-box-orange">
                 <CardHeader>
                   <Icon name={tariff.icon as any} className="text-accent w-12 h-12 mb-4" />
                   <CardTitle className="text-2xl">{tariff.name}</CardTitle>
-                  <CardDescription>Ваш трек в эфире через {tariff.time}</CardDescription>
+                  <CardDescription>Ваш трек в эфире через {tariff.time_estimate}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
