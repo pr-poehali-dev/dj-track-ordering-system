@@ -141,8 +141,8 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-primary/20">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold neon-glow-cyan">DJ Station</h1>
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl md:text-2xl font-bold neon-glow-cyan">DJ Station</h1>
           <div className="hidden md:flex gap-6">
             {['home', 'order', 'playlist', 'pricing', 'contact'].map((section) => (
               <button
@@ -168,46 +168,46 @@ export default function Index() {
         </div>
       </nav>
 
-      <section id="home" className="min-h-screen flex items-center justify-center pt-20 px-6">
+      <section id="home" className="min-h-screen flex items-center justify-center pt-20 px-4">
         <div className="text-center space-y-6 max-w-4xl">
-          <h1 className="text-6xl md:text-8xl font-bold neon-glow-purple animate-pulse">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold neon-glow-purple animate-pulse">
             DJ Station
           </h1>
-          <p className="text-xl md:text-2xl text-primary neon-glow-cyan">
+          <p className="text-lg sm:text-xl md:text-2xl text-primary neon-glow-cyan">
             Заказывай любимые треки прямо сейчас
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button
               size="lg"
               onClick={() => scrollToSection('order')}
-              className="neon-box-cyan text-lg"
+              className="neon-box-cyan text-base sm:text-lg"
             >
-              <Icon name="Music" className="mr-2" />
+              <Icon name="Music" className="mr-2" size={20} />
               Заказать трек
             </Button>
             <Button
               size="lg"
               variant="outline"
               onClick={() => scrollToSection('playlist')}
-              className="neon-box-purple text-lg"
+              className="neon-box-purple text-base sm:text-lg"
             >
-              <Icon name="ListMusic" className="mr-2" />
+              <Icon name="ListMusic" className="mr-2" size={20} />
               Плейлист
             </Button>
           </div>
         </div>
       </section>
 
-      <section id="order" className="min-h-screen flex items-center justify-center px-6 py-20">
+      <section id="order" className="min-h-screen flex items-center justify-center px-4 py-20">
         <Card className="w-full max-w-2xl neon-box-cyan">
           <CardHeader>
-            <CardTitle className="text-3xl neon-glow-cyan">Заказать трек</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl neon-glow-cyan">Заказать трек</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               {isAcceptingOrders ? 'Заполните форму и ваш трек зазвучит в эфире' : 'Прием заказов временно приостановлен'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleOrderSubmit} className="space-y-6">
+            <form onSubmit={handleOrderSubmit} className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
                 <Label>Название трека</Label>
                 <Input
@@ -266,17 +266,17 @@ export default function Index() {
                   {tariffs.map((tariff) => (
                     <div
                       key={tariff.tariff_id}
-                      className="flex items-center space-x-2 p-4 rounded-lg border border-primary/30 bg-card hover:border-primary/60 transition-colors"
+                      className="flex items-center space-x-2 p-3 sm:p-4 rounded-lg border border-primary/30 bg-card hover:border-primary/60 transition-colors"
                     >
                       <RadioGroupItem value={tariff.tariff_id} id={tariff.tariff_id} />
                       <Label htmlFor={tariff.tariff_id} className="flex-1 cursor-pointer">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
                           <div className="flex items-center gap-2">
-                            <Icon name={tariff.icon as any} className="text-primary" />
-                            <span className="font-semibold">{tariff.name}</span>
-                            <span className="text-sm text-muted-foreground">~ {tariff.time_estimate}</span>
+                            <Icon name={tariff.icon as any} className="text-primary" size={18} />
+                            <span className="font-semibold text-sm sm:text-base">{tariff.name}</span>
+                            <span className="text-xs sm:text-sm text-muted-foreground">~ {tariff.time_estimate}</span>
                           </div>
-                          <span className="text-accent font-bold">{tariff.price} ₽</span>
+                          <span className="text-accent font-bold text-base sm:text-lg">{tariff.price} ₽</span>
                         </div>
                       </Label>
                     </div>
@@ -322,8 +322,8 @@ export default function Index() {
                 )}
               </div>
 
-              <div className="space-y-2 p-4 rounded-lg border border-primary/30 bg-card/50">
-                <Label className="font-semibold">Способ оплаты</Label>
+              <div className="space-y-2 p-3 sm:p-4 rounded-lg border border-primary/30 bg-card/50">
+                <Label className="font-semibold text-sm sm:text-base">Способ оплаты</Label>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -336,8 +336,8 @@ export default function Index() {
                     />
                     <Label htmlFor="payment-online" className="cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Icon name="CreditCard" className="text-primary" size={20} />
-                        <span>Онлайн оплата (сразу)</span>
+                        <Icon name="CreditCard" className="text-primary" size={18} />
+                        <span className="text-sm sm:text-base">Онлайн оплата (сразу)</span>
                       </div>
                     </Label>
                   </div>
@@ -352,24 +352,24 @@ export default function Index() {
                     />
                     <Label htmlFor="payment-cash" className="cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Icon name="Wallet" className="text-primary" size={20} />
-                        <span>Наличными диджею</span>
+                        <Icon name="Wallet" className="text-primary" size={18} />
+                        <span className="text-sm sm:text-base">Наличными диджею</span>
                       </div>
                     </Label>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center p-4 rounded-lg bg-card border border-primary/30">
-                <span className="font-semibold">Итого к оплате:</span>
-                <span className="text-2xl font-bold text-accent">
+              <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-card border border-primary/30">
+                <span className="font-semibold text-sm sm:text-base">Итого к оплате:</span>
+                <span className="text-xl sm:text-2xl font-bold text-accent">
                   {(tariffs.find(t => t.tariff_id === orderForm.tariff)?.price || 500) + (orderForm.has_celebration ? 100 : 0)} ₽
                 </span>
               </div>
 
               <Button
                 type="submit"
-                className="w-full neon-box-cyan text-lg"
+                className="w-full neon-box-cyan text-base sm:text-lg"
                 size="lg"
                 disabled={!isAcceptingOrders}
               >
