@@ -66,15 +66,33 @@ export default function Admin() {
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    sessionStorage.setItem('adminAuth', password);
-    setAdminPassword(password);
-    setIsAuthenticated(true);
-    loadOrders(password);
-    loadSettings(password);
-    loadTariffs();
-    toast({ title: 'Вход выполнен' });
+    
+    if (!password) {
+      toast({ title: 'Введите пароль', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const response = await fetch(BACKEND_URLS.settings, {
+        headers: { 'X-Admin-Auth': password }
+      });
+
+      if (response.ok) {
+        sessionStorage.setItem('adminAuth', password);
+        setAdminPassword(password);
+        setIsAuthenticated(true);
+        loadOrders(password);
+        loadSettings(password);
+        loadTariffs();
+        toast({ title: 'Вход выполнен' });
+      } else {
+        toast({ title: 'Неверный пароль', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Ошибка соединения', variant: 'destructive' });
+    }
   };
 
   const handleLogout = () => {
