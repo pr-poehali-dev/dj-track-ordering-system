@@ -28,6 +28,7 @@ interface Order {
   payment_method?: string;
   has_celebration?: boolean;
   celebration_text?: string;
+  celebration_type?: string;
   created_at: string;
 }
 
@@ -431,11 +432,18 @@ export default function Admin() {
                         <Icon name="PartyPopper" size={16} className="text-secondary" />
                         <span className="text-sm font-semibold text-secondary">Поздравление</span>
                       </div>
-                      {order.celebration_text && (
-                        <p className="text-sm text-muted-foreground italic">
-                          "{order.celebration_text}"
-                        </p>
-                      )}
+                      <div className="text-sm space-y-1">
+                        {order.celebration_text && (
+                          <p className="text-muted-foreground">
+                            <span className="font-medium">Имя:</span> {order.celebration_text}
+                          </p>
+                        )}
+                        {order.celebration_type && (
+                          <p className="text-muted-foreground">
+                            <span className="font-medium">Праздник:</span> {order.celebration_type}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                   <div className="flex gap-2 mt-3 pt-3 border-t border-border">

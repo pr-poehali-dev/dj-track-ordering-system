@@ -47,6 +47,7 @@ export default function Index() {
     tariff: 'standard',
     has_celebration: false,
     celebration_text: '',
+    celebration_type: '',
     payment_method: 'online'
   });
   const { toast } = useToast();
@@ -123,6 +124,7 @@ export default function Index() {
           tariff: 'standard',
           has_celebration: false,
           celebration_text: '',
+          celebration_type: '',
           payment_method: 'online'
         });
       } else {
@@ -306,7 +308,7 @@ export default function Index() {
                   <div className="space-y-3 ml-6">
                     <div className="space-y-2">
                       <Label className="text-sm text-muted-foreground">
-                        Имя именинника
+                        Имя
                       </Label>
                       <Input
                         placeholder="Например: Алина"
@@ -316,12 +318,24 @@ export default function Index() {
                         disabled={!isAcceptingOrders}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">
+                        Тип праздника (необязательно)
+                      </Label>
+                      <Input
+                        placeholder="Например: День рождения, Свадьба, Юбилей"
+                        value={orderForm.celebration_type}
+                        onChange={(e) => setOrderForm({ ...orderForm, celebration_type: e.target.value })}
+                        className="bg-card border-secondary/30"
+                        disabled={!isAcceptingOrders}
+                      />
+                    </div>
                     <div className="space-y-2 p-2 rounded bg-secondary/5 border border-secondary/20">
                       <div className="flex items-start gap-2">
                         <Icon name="Info" size={14} className="text-secondary mt-0.5 flex-shrink-0" />
                         <div className="text-xs text-muted-foreground space-y-1">
                           <p><span className="font-semibold text-secondary">День рождения:</span> Диджей поздравит именинника от всех гостей</p>
-                          <p><span className="font-semibold text-secondary">Другой праздник:</span> Укажите имя, диджей придумает поздравление</p>
+                          <p><span className="font-semibold text-secondary">Другой праздник:</span> Укажите тип праздника, диджей придумает поздравление</p>
                         </div>
                       </div>
                     </div>

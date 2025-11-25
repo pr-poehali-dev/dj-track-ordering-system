@@ -1,0 +1,1 @@
+ALTER TABLE track_orders ADD COLUMN celebration_type VARCHAR(100);
