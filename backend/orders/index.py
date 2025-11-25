@@ -17,7 +17,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Auth',
                 'Access-Control-Max-Age': '86400'
             },
@@ -74,6 +74,76 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             },
             'isBase64Encoded': False,
             'body': json.dumps(dict(new_order), default=str)
+        }
+    
+    if method == 'PUT':
+        headers = event.get('headers', {})
+        admin_auth = headers.get('x-admin-auth') or headers.get('X-Admin-Auth')
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+        
+        if not admin_auth or admin_auth != admin_password:
+            conn.close()
+            return {
+                'statusCode': 401,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Unauthorized'})
+            }
+        
+        body_data = json.loads(event.get('body', '{}'))
+        order_id = body_data.get('id')
+        status = body_data.get('status')
+        payment_status = body_data.get('payment_status')
+        
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "UPDATE track_orders SET status = %s, payment_status = %s WHERE id = %s RETURNING *",
+                (status, payment_status, order_id)
+            )
+            updated_order = cur.fetchone()
+            conn.commit()
+        
+        conn.close()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'isBase64Encoded': False,
+            'body': json.dumps(dict(updated_order), default=str)
+        }
+    
+    if method == 'DELETE':
+        headers = event.get('headers', {})
+        admin_auth = headers.get('x-admin-auth') or headers.get('X-Admin-Auth')
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+        
+        if not admin_auth or admin_auth != admin_password:
+            conn.close()
+            return {
+                'statusCode': 401,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Unauthorized'})
+            }
+        
+        params = event.get('queryStringParameters', {})
+        order_id = params.get('id')
+        
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM track_orders WHERE id = %s", (order_id,))
+            conn.commit()
+        
+        conn.close()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'isBase64Encoded': False,
+            'body': json.dumps({'success': True})
         }
     
     conn.close()

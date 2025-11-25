@@ -187,6 +187,50 @@ export default function Admin() {
     }
   };
 
+  const updateOrderStatus = async (orderId: number, status: string, paymentStatus: string) => {
+    try {
+      const response = await fetch(BACKEND_URLS.orders, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Auth': adminPassword
+        },
+        body: JSON.stringify({ id: orderId, status, payment_status: paymentStatus })
+      });
+
+      if (response.ok) {
+        toast({ title: 'Статус заказа обновлен' });
+        loadOrders(adminPassword);
+      } else {
+        toast({ title: 'Ошибка обновления статуса', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Ошибка соединения', variant: 'destructive' });
+    }
+  };
+
+  const deleteOrder = async (orderId: number) => {
+    if (!confirm('Удалить этот заказ?')) return;
+
+    try {
+      const response = await fetch(`${BACKEND_URLS.orders}?id=${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Admin-Auth': adminPassword
+        }
+      });
+
+      if (response.ok) {
+        toast({ title: 'Заказ удален' });
+        loadOrders(adminPassword);
+      } else {
+        toast({ title: 'Ошибка удаления заказа', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Ошибка соединения', variant: 'destructive' });
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -387,6 +431,47 @@ export default function Admin() {
                       )}
                     </div>
                   )}
+                  <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                    {order.status === 'pending' && (
+                      <Button
+                        onClick={() => updateOrderStatus(order.id, 'completed', order.payment_status)}
+                        size="sm"
+                        className="neon-box-cyan"
+                      >
+                        <Icon name="Check" size={16} className="mr-1" />
+                        Выполнено
+                      </Button>
+                    )}
+                    {order.status === 'completed' && (
+                      <Button
+                        onClick={() => updateOrderStatus(order.id, 'pending', order.payment_status)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Icon name="RotateCcw" size={16} className="mr-1" />
+                        Вернуть
+                      </Button>
+                    )}
+                    {order.payment_status === 'unpaid' && (
+                      <Button
+                        onClick={() => updateOrderStatus(order.id, order.status, 'paid')}
+                        size="sm"
+                        variant="outline"
+                        className="border-green-500 text-green-500 hover:bg-green-500/10"
+                      >
+                        <Icon name="DollarSign" size={16} className="mr-1" />
+                        Оплачено
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => deleteOrder(order.id)}
+                      size="sm"
+                      variant="destructive"
+                      className="ml-auto"
+                    >
+                      <Icon name="Trash2" size={16} />
+                    </Button>
+                  </div>
                 </div>
               ))}
               {orders.length === 0 && (
