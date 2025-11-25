@@ -305,10 +305,10 @@ export default function Index() {
                 {orderForm.has_celebration && (
                   <div className="space-y-2 ml-6">
                     <Label className="text-sm text-muted-foreground">
-                      Текст поздравления (необязательно)
+                      Имя именинника и текст поздравления
                     </Label>
                     <Textarea
-                      placeholder="Например: С Днем Рождения, Алина! Желаем счастья!"
+                      placeholder="Например: Алина! С Днем Рождения! Желаем счастья и любви!"
                       value={orderForm.celebration_text}
                       onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
                       className="bg-card border-secondary/30"
@@ -316,7 +316,7 @@ export default function Index() {
                       disabled={!isAcceptingOrders}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Диджей зачитает ваше поздравление перед треком
+                      💡 Укажите имя и поздравление — диджей зачитает перед треком
                     </p>
                   </div>
                 )}
