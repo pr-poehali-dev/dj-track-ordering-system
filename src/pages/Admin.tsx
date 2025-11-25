@@ -48,6 +48,8 @@ export default function Admin() {
   const [adminPassword, setAdminPassword] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
+  const [promoCode, setPromoCode] = useState('');
+  const [editingPromo, setEditingPromo] = useState(false);
   const [newTrack, setNewTrack] = useState({ track_name: '', artist: '' });
   const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [editingTariff, setEditingTariff] = useState<Tariff | null>(null);
@@ -103,6 +105,7 @@ export default function Admin() {
       });
       const data = await response.json();
       setIsAcceptingOrders(data.is_accepting_orders);
+      setPromoCode(data.promo_code || '');
     } catch (error) {
       toast({ title: 'Ошибка загрузки настроек', variant: 'destructive' });
     }
@@ -212,6 +215,28 @@ export default function Admin() {
     }
   };
 
+  const updatePromoCode = async () => {
+    try {
+      const response = await fetch(BACKEND_URLS.settings, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Auth': adminPassword
+        },
+        body: JSON.stringify({ promo_code: promoCode })
+      });
+
+      if (response.ok) {
+        toast({ title: 'Промокод обновлён' });
+        setEditingPromo(false);
+      } else {
+        toast({ title: 'Ошибка обновления промокода', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Ошибка соединения', variant: 'destructive' });
+    }
+  };
+
   const deleteOrder = async (orderId: number) => {
     if (!confirm('Удалить этот заказ?')) return;
 
@@ -285,6 +310,55 @@ export default function Admin() {
             <Label htmlFor="accepting-orders" className="text-lg">
               {isAcceptingOrders ? 'Прием заказов включен' : 'Прием заказов выключен'}
             </Label>
+          </CardContent>
+        </Card>
+
+        <Card className="neon-box-orange">
+          <CardHeader>
+            <CardTitle>Промокод на бесплатный заказ</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {editingPromo ? (
+              <div className="space-y-3">
+                <Input
+                  placeholder="Введите промокод"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="bg-card border-accent/30"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={updatePromoCode}
+                    className="neon-box-cyan"
+                  >
+                    Сохранить
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setEditingPromo(false);
+                      loadSettings(adminPassword);
+                    }}
+                    variant="outline"
+                  >
+                    Отмена
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-muted-foreground">Текущий промокод:</p>
+                  <p className="text-lg font-bold text-accent">{promoCode || 'Не установлен'}</p>
+                </div>
+                <Button
+                  onClick={() => setEditingPromo(true)}
+                  variant="outline"
+                >
+                  <Icon name="Pencil" size={16} className="mr-2" />
+                  Изменить
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 

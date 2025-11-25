@@ -1,0 +1,1 @@
+ALTER TABLE dj_settings ADD COLUMN promo_code VARCHAR(50);

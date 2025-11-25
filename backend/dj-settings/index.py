@@ -69,13 +69,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         body_data = json.loads(event.get('body', '{}'))
-        is_accepting = body_data.get('is_accepting_orders', True)
+        is_accepting = body_data.get('is_accepting_orders')
+        promo_code = body_data.get('promo_code')
         
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(
-                "UPDATE dj_settings SET is_accepting_orders = %s, updated_at = CURRENT_TIMESTAMP WHERE id = 1 RETURNING *",
-                (is_accepting,)
-            )
+            if is_accepting is not None and promo_code is not None:
+                cur.execute(
+                    "UPDATE dj_settings SET is_accepting_orders = %s, promo_code = %s, updated_at = CURRENT_TIMESTAMP WHERE id = 1 RETURNING *",
+                    (is_accepting, promo_code)
+                )
+            elif is_accepting is not None:
+                cur.execute(
+                    "UPDATE dj_settings SET is_accepting_orders = %s, updated_at = CURRENT_TIMESTAMP WHERE id = 1 RETURNING *",
+                    (is_accepting,)
+                )
+            elif promo_code is not None:
+                cur.execute(
+                    "UPDATE dj_settings SET promo_code = %s, updated_at = CURRENT_TIMESTAMP WHERE id = 1 RETURNING *",
+                    (promo_code,)
+                )
             updated_settings = cur.fetchone()
             conn.commit()
         

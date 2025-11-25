@@ -37,6 +37,8 @@ interface Tariff {
 export default function Index() {
   const [activeSection, setActiveSection] = useState('home');
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
+  const [activePromoCode, setActivePromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
   const [playlist, setPlaylist] = useState<Track[]>([]);
   const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [orderForm, setOrderForm] = useState({
@@ -49,7 +51,8 @@ export default function Index() {
     celebration_category: 'birthday',
     celebration_text: '',
     celebration_type: '',
-    payment_method: 'online'
+    payment_method: 'online',
+    promo_code: ''
   });
   const { toast } = useToast();
 
@@ -66,6 +69,7 @@ export default function Index() {
       const response = await fetch(BACKEND_URLS.settings);
       const data = await response.json();
       setIsAcceptingOrders(data.is_accepting_orders);
+      setActivePromoCode(data.promo_code || '');
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -105,6 +109,10 @@ export default function Index() {
       totalPrice += 100;
     }
     
+    if (promoApplied && activePromoCode && orderForm.promo_code.toLowerCase() === activePromoCode.toLowerCase()) {
+      totalPrice = 0;
+    }
+    
     try {
       const response = await fetch(BACKEND_URLS.orders, {
         method: 'POST',
@@ -127,8 +135,10 @@ export default function Index() {
           celebration_category: 'birthday',
           celebration_text: '',
           celebration_type: '',
-          payment_method: 'online'
+          payment_method: 'online',
+          promo_code: ''
         });
+        setPromoApplied(false);
       } else {
         toast({ title: 'Ошибка создания заказа', variant: 'destructive' });
       }
@@ -413,10 +423,49 @@ export default function Index() {
                 </div>
               </div>
 
+              {activePromoCode && (
+                <div className="space-y-2 p-3 sm:p-4 rounded-lg border border-accent/30 bg-card/50">
+                  <Label className="font-semibold text-sm sm:text-base">Промокод на бесплатный заказ</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Введите промокод"
+                      value={orderForm.promo_code}
+                      onChange={(e) => {
+                        setOrderForm({ ...orderForm, promo_code: e.target.value });
+                        setPromoApplied(false);
+                      }}
+                      className="bg-card border-accent/30"
+                      disabled={!isAcceptingOrders || promoApplied}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (orderForm.promo_code.toLowerCase() === activePromoCode.toLowerCase()) {
+                          setPromoApplied(true);
+                          toast({ title: 'Промокод применён!', description: 'Заказ бесплатный' });
+                        } else {
+                          toast({ title: 'Неверный промокод', variant: 'destructive' });
+                        }
+                      }}
+                      disabled={!isAcceptingOrders || promoApplied || !orderForm.promo_code}
+                      className="neon-box-orange"
+                    >
+                      {promoApplied ? 'Применён' : 'Применить'}
+                    </Button>
+                  </div>
+                  {promoApplied && (
+                    <p className="text-sm text-green-500 flex items-center gap-1">
+                      <Icon name="Check" size={16} />
+                      Скидка 100% активирована
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-card border border-primary/30">
                 <span className="font-semibold text-sm sm:text-base">Итого к оплате:</span>
                 <span className="text-xl sm:text-2xl font-bold text-accent">
-                  {(tariffs.find(t => t.tariff_id === orderForm.tariff)?.price || 500) + (orderForm.has_celebration ? 100 : 0)} ₽
+                  {promoApplied ? 0 : (tariffs.find(t => t.tariff_id === orderForm.tariff)?.price || 500) + (orderForm.has_celebration ? 100 : 0)} ₽
                 </span>
               </div>
 
@@ -426,7 +475,7 @@ export default function Index() {
                 size="lg"
                 disabled={!isAcceptingOrders}
               >
-                {isAcceptingOrders ? (orderForm.payment_method === 'online' ? 'Заказать и оплатить' : 'Отправить заказ') : 'Прием заказов приостановлен'}
+                {isAcceptingOrders ? (promoApplied ? 'Отправить бесплатный заказ' : orderForm.payment_method === 'online' ? 'Заказать и оплатить' : 'Отправить заказ') : 'Прием заказов приостановлен'}
               </Button>
             </form>
           </CardContent>
