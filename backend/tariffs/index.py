@@ -6,9 +6,9 @@ from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Управление заказами треков - получение списка и создание новых заказов
-    Args: event с httpMethod, body, queryStringParameters
-    Returns: HTTP response с данными заказов
+    Business: Управление тарифами - получение и редактирование цен и названий
+    Args: event с httpMethod, body, headers
+    Returns: HTTP response с данными тарифов
     '''
     method: str = event.get('httpMethod', 'GET')
     
@@ -17,7 +17,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Auth',
                 'Access-Control-Max-Age': '86400'
             },
@@ -29,8 +29,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     if method == 'GET':
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM track_orders ORDER BY created_at DESC")
-            orders = cur.fetchall()
+            cur.execute("SELECT * FROM tariff_prices ORDER BY price DESC")
+            tariffs = cur.fetchall()
         
         conn.close()
         
@@ -41,39 +41,46 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Origin': '*'
             },
             'isBase64Encoded': False,
-            'body': json.dumps([dict(order) for order in orders], default=str)
+            'body': json.dumps([dict(tariff) for tariff in tariffs], default=str)
         }
     
-    if method == 'POST':
-        body_data = json.loads(event.get('body', '{}'))
+    if method == 'PUT':
+        headers = event.get('headers', {})
+        admin_auth = headers.get('x-admin-auth') or headers.get('X-Admin-Auth')
+        admin_password = os.environ.get('ADMIN_PASSWORD')
         
-        track_name = body_data.get('track_name')
-        artist = body_data.get('artist')
-        customer_name = body_data.get('customer_name')
-        customer_phone = body_data.get('customer_phone', '')
-        tariff = body_data.get('tariff')
+        if not admin_auth or admin_auth != admin_password:
+            conn.close()
+            return {
+                'statusCode': 401,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Unauthorized'})
+            }
+        
+        body_data = json.loads(event.get('body', '{}'))
+        tariff_id = body_data.get('tariff_id')
         price = body_data.get('price')
-        has_celebration = body_data.get('has_celebration', False)
-        celebration_text = body_data.get('celebration_text', '')
+        name = body_data.get('name')
+        time_estimate = body_data.get('time_estimate')
         
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
-                "INSERT INTO track_orders (track_name, artist, customer_name, customer_phone, tariff, price, has_celebration, celebration_text) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                (track_name, artist, customer_name, customer_phone, tariff, price, has_celebration, celebration_text)
+                "UPDATE tariff_prices SET price = %s, name = %s, time_estimate = %s, updated_at = CURRENT_TIMESTAMP WHERE tariff_id = %s RETURNING *",
+                (price, name, time_estimate, tariff_id)
             )
-            new_order = cur.fetchone()
+            updated_tariff = cur.fetchone()
             conn.commit()
         
         conn.close()
         
         return {
-            'statusCode': 201,
+            'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
             'isBase64Encoded': False,
-            'body': json.dumps(dict(new_order), default=str)
+            'body': json.dumps(dict(updated_tariff), default=str)
         }
     
     conn.close()

@@ -11,7 +11,8 @@ import Icon from '@/components/ui/icon';
 const BACKEND_URLS = {
   orders: 'https://functions.poehali.dev/3dc2e3de-2054-4223-9dd4-5e482efa2dec',
   settings: 'https://functions.poehali.dev/2dbf8e4a-2787-45fe-b10d-8bb9908d6e72',
-  playlist: 'https://functions.poehali.dev/49c9500f-f690-4ad8-989e-5b4b14218fcf'
+  playlist: 'https://functions.poehali.dev/49c9500f-f690-4ad8-989e-5b4b14218fcf',
+  tariffs: 'https://functions.poehali.dev/30271522-ad34-475a-a13a-bbede9385816'
 };
 
 interface Order {
@@ -24,7 +25,18 @@ interface Order {
   price: number;
   status: string;
   payment_status: string;
+  has_celebration?: boolean;
+  celebration_text?: string;
   created_at: string;
+}
+
+interface Tariff {
+  id?: number;
+  tariff_id: string;
+  name: string;
+  price: number;
+  time_estimate: string;
+  icon: string;
 }
 
 export default function Admin() {
@@ -34,6 +46,8 @@ export default function Admin() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
   const [newTrack, setNewTrack] = useState({ track_name: '', artist: '' });
+  const [tariffs, setTariffs] = useState<Tariff[]>([]);
+  const [editingTariff, setEditingTariff] = useState<Tariff | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -44,6 +58,7 @@ export default function Admin() {
       setIsAuthenticated(true);
       loadOrders(stored);
       loadSettings(stored);
+      loadTariffs();
     }
   }, []);
 
@@ -54,6 +69,7 @@ export default function Admin() {
     setIsAuthenticated(true);
     loadOrders(password);
     loadSettings(password);
+    loadTariffs();
     toast({ title: 'Вход выполнен' });
   };
 
@@ -132,6 +148,39 @@ export default function Admin() {
         setNewTrack({ track_name: '', artist: '' });
       } else {
         toast({ title: 'Ошибка добавления трека', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Ошибка соединения', variant: 'destructive' });
+    }
+  };
+
+  const loadTariffs = async () => {
+    try {
+      const response = await fetch(BACKEND_URLS.tariffs);
+      const data = await response.json();
+      setTariffs(data);
+    } catch (error) {
+      toast({ title: 'Ошибка загрузки тарифов', variant: 'destructive' });
+    }
+  };
+
+  const updateTariff = async (tariff: Tariff) => {
+    try {
+      const response = await fetch(BACKEND_URLS.tariffs, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Auth': adminPassword
+        },
+        body: JSON.stringify(tariff)
+      });
+
+      if (response.ok) {
+        toast({ title: 'Тариф обновлен' });
+        loadTariffs();
+        setEditingTariff(null);
+      } else {
+        toast({ title: 'Ошибка обновления тарифа', variant: 'destructive' });
       }
     } catch (error) {
       toast({ title: 'Ошибка соединения', variant: 'destructive' });
@@ -220,6 +269,84 @@ export default function Admin() {
 
         <Card className="neon-box-orange">
           <CardHeader>
+            <CardTitle>Управление тарифами</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {tariffs.map((tariff) => (
+              <div
+                key={tariff.tariff_id}
+                className="p-4 rounded-lg bg-card border border-accent/30 space-y-3"
+              >
+                {editingTariff?.tariff_id === tariff.tariff_id ? (
+                  <div className="space-y-3">
+                    <Input
+                      placeholder="Название тарифа"
+                      value={editingTariff.name}
+                      onChange={(e) =>
+                        setEditingTariff({ ...editingTariff, name: e.target.value })
+                      }
+                      className="bg-card border-accent/30"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Цена"
+                        value={editingTariff.price}
+                        onChange={(e) =>
+                          setEditingTariff({ ...editingTariff, price: parseInt(e.target.value) })
+                        }
+                        className="bg-card border-accent/30"
+                      />
+                      <Input
+                        placeholder="Время (5 минут)"
+                        value={editingTariff.time_estimate}
+                        onChange={(e) =>
+                          setEditingTariff({ ...editingTariff, time_estimate: e.target.value })
+                        }
+                        className="bg-card border-accent/30"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => updateTariff(editingTariff)}
+                        className="neon-box-cyan"
+                        size="sm"
+                      >
+                        Сохранить
+                      </Button>
+                      <Button
+                        onClick={() => setEditingTariff(null)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Отмена
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold text-lg">{tariff.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {tariff.time_estimate} • {tariff.price} ₽
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => setEditingTariff(tariff)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Icon name="Pencil" size={16} />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="neon-box-orange">
+          <CardHeader>
             <CardTitle>Заказы треков ({orders.length})</CardTitle>
           </CardHeader>
           <CardContent>
@@ -247,6 +374,19 @@ export default function Admin() {
                     <span>Статус: {order.status}</span>
                     <span>Оплата: {order.payment_status}</span>
                   </div>
+                  {order.has_celebration && (
+                    <div className="mt-2 p-2 rounded bg-secondary/10 border border-secondary/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon name="PartyPopper" size={16} className="text-secondary" />
+                        <span className="text-sm font-semibold text-secondary">Поздравление</span>
+                      </div>
+                      {order.celebration_text && (
+                        <p className="text-sm text-muted-foreground italic">
+                          "{order.celebration_text}"
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
               {orders.length === 0 && (

@@ -5,13 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 
 const BACKEND_URLS = {
   orders: 'https://functions.poehali.dev/3dc2e3de-2054-4223-9dd4-5e482efa2dec',
   settings: 'https://functions.poehali.dev/2dbf8e4a-2787-45fe-b10d-8bb9908d6e72',
-  playlist: 'https://functions.poehali.dev/49c9500f-f690-4ad8-989e-5b4b14218fcf'
+  playlist: 'https://functions.poehali.dev/49c9500f-f690-4ad8-989e-5b4b14218fcf',
+  tariffs: 'https://functions.poehali.dev/30271522-ad34-475a-a13a-bbede9385816'
 };
 
 interface Track {
@@ -22,28 +25,35 @@ interface Track {
   added_at: string;
 }
 
-const TARIFFS = [
-  { id: 'express', name: 'Экспресс', price: 1500, time: '5 минут', icon: 'Zap' },
-  { id: 'standard', name: 'Стандарт', price: 500, time: '15 минут', icon: 'Music' },
-  { id: 'economy', name: 'Эконом', price: 200, time: '30 минут', icon: 'Clock' }
-];
+interface Tariff {
+  id?: number;
+  tariff_id: string;
+  name: string;
+  price: number;
+  time_estimate: string;
+  icon: string;
+}
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState('home');
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
   const [playlist, setPlaylist] = useState<Track[]>([]);
+  const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [orderForm, setOrderForm] = useState({
     track_name: '',
     artist: '',
     customer_name: '',
     customer_phone: '',
-    tariff: 'standard'
+    tariff: 'standard',
+    has_celebration: false,
+    celebration_text: ''
   });
   const { toast } = useToast();
 
   useEffect(() => {
     loadSettings();
     loadPlaylist();
+    loadTariffs();
     const interval = setInterval(loadPlaylist, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -68,6 +78,16 @@ export default function Index() {
     }
   };
 
+  const loadTariffs = async () => {
+    try {
+      const response = await fetch(BACKEND_URLS.tariffs);
+      const data = await response.json();
+      setTariffs(data);
+    } catch (error) {
+      console.error('Error loading tariffs:', error);
+    }
+  };
+
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -76,7 +96,11 @@ export default function Index() {
       return;
     }
 
-    const selectedTariff = TARIFFS.find(t => t.id === orderForm.tariff);
+    const selectedTariff = tariffs.find(t => t.tariff_id === orderForm.tariff);
+    let totalPrice = selectedTariff?.price || 500;
+    if (orderForm.has_celebration) {
+      totalPrice += 100;
+    }
     
     try {
       const response = await fetch(BACKEND_URLS.orders, {
@@ -84,7 +108,7 @@ export default function Index() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...orderForm,
-          price: selectedTariff?.price || 500
+          price: totalPrice
         })
       });
 
@@ -95,7 +119,9 @@ export default function Index() {
           artist: '',
           customer_name: '',
           customer_phone: '',
-          tariff: 'standard'
+          tariff: 'standard',
+          has_celebration: false,
+          celebration_text: ''
         });
       } else {
         toast({ title: 'Ошибка создания заказа', variant: 'destructive' });
@@ -235,18 +261,18 @@ export default function Index() {
                   onValueChange={(value) => setOrderForm({ ...orderForm, tariff: value })}
                   disabled={!isAcceptingOrders}
                 >
-                  {TARIFFS.map((tariff) => (
+                  {tariffs.map((tariff) => (
                     <div
-                      key={tariff.id}
+                      key={tariff.tariff_id}
                       className="flex items-center space-x-2 p-4 rounded-lg border border-primary/30 bg-card hover:border-primary/60 transition-colors"
                     >
-                      <RadioGroupItem value={tariff.id} id={tariff.id} />
-                      <Label htmlFor={tariff.id} className="flex-1 cursor-pointer">
+                      <RadioGroupItem value={tariff.tariff_id} id={tariff.tariff_id} />
+                      <Label htmlFor={tariff.tariff_id} className="flex-1 cursor-pointer">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
                             <Icon name={tariff.icon as any} className="text-primary" />
                             <span className="font-semibold">{tariff.name}</span>
-                            <span className="text-sm text-muted-foreground">~ {tariff.time}</span>
+                            <span className="text-sm text-muted-foreground">~ {tariff.time_estimate}</span>
                           </div>
                           <span className="text-accent font-bold">{tariff.price} ₽</span>
                         </div>
@@ -254,6 +280,51 @@ export default function Index() {
                     </div>
                   ))}
                 </RadioGroup>
+              </div>
+
+              <div className="space-y-4 p-4 rounded-lg border border-secondary/30 bg-card/50">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="celebration"
+                    checked={orderForm.has_celebration}
+                    onCheckedChange={(checked) => 
+                      setOrderForm({ ...orderForm, has_celebration: checked as boolean })
+                    }
+                    disabled={!isAcceptingOrders}
+                  />
+                  <Label htmlFor="celebration" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Icon name="PartyPopper" className="text-secondary" size={20} />
+                      <span className="font-semibold">Поздравить с праздником</span>
+                      <span className="text-accent font-bold">+100 ₽</span>
+                    </div>
+                  </Label>
+                </div>
+                {orderForm.has_celebration && (
+                  <div className="space-y-2 ml-6">
+                    <Label className="text-sm text-muted-foreground">
+                      Текст поздравления (необязательно)
+                    </Label>
+                    <Textarea
+                      placeholder="Например: С Днем Рождения, Алина! Желаем счастья!"
+                      value={orderForm.celebration_text}
+                      onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
+                      className="bg-card border-secondary/30"
+                      rows={3}
+                      disabled={!isAcceptingOrders}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Диджей зачитает ваше поздравление перед треком
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center p-4 rounded-lg bg-card border border-primary/30">
+                <span className="font-semibold">Итого к оплате:</span>
+                <span className="text-2xl font-bold text-accent">
+                  {(tariffs.find(t => t.tariff_id === orderForm.tariff)?.price || 500) + (orderForm.has_celebration ? 100 : 0)} ₽
+                </span>
               </div>
 
               <Button
