@@ -5,6 +5,48 @@ from psycopg2.extras import RealDictCursor
 from typing import Dict, Any
 from openai import OpenAI
 
+def moderate_track(track_name: str, artist: str) -> tuple[bool, str]:
+    '''
+    Проверяет трек на недопустимый контент через OpenAI
+    Returns: (is_safe, reason)
+    '''
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    if not openai_key:
+        return (True, '')
+    
+    client = OpenAI(api_key=openai_key)
+    
+    prompt = f"""Проверь трек на недопустимый контент:
+Название: {track_name}
+Исполнитель: {artist}
+
+Запрещено:
+- Мат и нецензурная лексика
+- Пропаганда самоубийства, наркотиков, нацизма
+- Связь с войной, СВО, военными действиями
+- Шансон (тюремная лирика, воровская романтика)
+
+Ответь ТОЛЬКО одним словом:
+- "OK" если трек разрешен
+- "BLOCKED" если трек запрещен
+
+Если BLOCKED, добавь через пробел краткую причину (3-5 слов)."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=50
+    )
+    
+    result = response.choices[0].message.content.strip()
+    
+    if result.startswith('BLOCKED'):
+        reason = result.replace('BLOCKED', '').strip()
+        return (False, reason or 'Недопустимый контент')
+    
+    return (True, '')
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Управление заказами треков - получение списка и создание новых заказов
@@ -59,6 +101,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         celebration_text = body_data.get('celebration_text', '')
         celebration_type = body_data.get('celebration_type', '')
         payment_method = body_data.get('payment_method', 'online')
+        
+        is_safe, reason = moderate_track(track_name, artist)
+        
+        if not is_safe:
+            conn.close()
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': f'Трек отклонен: {reason}'})
+            }
         
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
