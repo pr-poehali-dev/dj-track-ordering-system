@@ -303,20 +303,28 @@ export default function Index() {
                   </Label>
                 </div>
                 {orderForm.has_celebration && (
-                  <div className="space-y-2 ml-6">
-                    <Label className="text-sm text-muted-foreground">
-                      Имя именинника
-                    </Label>
-                    <Input
-                      placeholder="Например: Алина"
-                      value={orderForm.celebration_text}
-                      onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
-                      className="bg-card border-secondary/30"
-                      disabled={!isAcceptingOrders}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      💡 Диджей сам придумает поздравление
-                    </p>
+                  <div className="space-y-3 ml-6">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">
+                        Имя именинника
+                      </Label>
+                      <Input
+                        placeholder="Например: Алина"
+                        value={orderForm.celebration_text}
+                        onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
+                        className="bg-card border-secondary/30"
+                        disabled={!isAcceptingOrders}
+                      />
+                    </div>
+                    <div className="space-y-2 p-2 rounded bg-secondary/5 border border-secondary/20">
+                      <div className="flex items-start gap-2">
+                        <Icon name="Info" size={14} className="text-secondary mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <p><span className="font-semibold text-secondary">День рождения:</span> Диджей поздравит именинника от всех гостей</p>
+                          <p><span className="font-semibold text-secondary">Другой праздник:</span> Укажите имя, диджей придумает поздравление</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
