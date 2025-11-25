@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "Get all orders",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create new order",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "track_name": "Test Track",
+        "artist": "Test Artist",
+        "customer_name": "John",
+        "tariff": "standard",
+        "price": 500
+      },
+      "expectedStatus": 201
+    }
+  ]
+}
