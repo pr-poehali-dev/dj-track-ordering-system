@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
+import AdminLoginForm from '@/components/admin/AdminLoginForm';
+import AdminSettingsCards from '@/components/admin/AdminSettingsCards';
+import AdminOrdersList from '@/components/admin/AdminOrdersList';
 
 const BACKEND_URLS = {
   orders: 'https://functions.poehali.dev/3dc2e3de-2054-4223-9dd4-5e482efa2dec',
@@ -260,30 +259,7 @@ export default function Admin() {
   };
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md neon-box-cyan">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold neon-glow-cyan">Админ-панель</CardTitle>
-            <CardDescription>Введите пароль для доступа</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Пароль"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-card border-primary/30"
-              />
-              <Button type="submit" className="w-full neon-box-cyan">
-                Войти
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AdminLoginForm password={password} setPassword={setPassword} handleLogin={handleLogin} />;
   }
 
   return (
@@ -297,290 +273,30 @@ export default function Admin() {
           </Button>
         </div>
 
-        <Card className="neon-box-cyan">
-          <CardHeader>
-            <CardTitle>Настройки приема заказов</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center space-x-4">
-            <Switch
-              checked={isAcceptingOrders}
-              onCheckedChange={toggleAcceptingOrders}
-              id="accepting-orders"
-            />
-            <Label htmlFor="accepting-orders" className="text-lg">
-              {isAcceptingOrders ? 'Прием заказов включен' : 'Прием заказов выключен'}
-            </Label>
-          </CardContent>
-        </Card>
+        <AdminSettingsCards
+          isAcceptingOrders={isAcceptingOrders}
+          toggleAcceptingOrders={toggleAcceptingOrders}
+          promoCode={promoCode}
+          setPromoCode={setPromoCode}
+          editingPromo={editingPromo}
+          setEditingPromo={setEditingPromo}
+          updatePromoCode={updatePromoCode}
+          loadSettings={loadSettings}
+          adminPassword={adminPassword}
+          newTrack={newTrack}
+          setNewTrack={setNewTrack}
+          addToPlaylist={addToPlaylist}
+          tariffs={tariffs}
+          editingTariff={editingTariff}
+          setEditingTariff={setEditingTariff}
+          updateTariff={updateTariff}
+        />
 
-        <Card className="neon-box-orange">
-          <CardHeader>
-            <CardTitle>Промокод на бесплатный заказ</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {editingPromo ? (
-              <div className="space-y-3">
-                <Input
-                  placeholder="Введите промокод"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  className="bg-card border-accent/30"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    onClick={updatePromoCode}
-                    className="neon-box-cyan"
-                  >
-                    Сохранить
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setEditingPromo(false);
-                      loadSettings(adminPassword);
-                    }}
-                    variant="outline"
-                  >
-                    Отмена
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-muted-foreground">Текущий промокод:</p>
-                  <p className="text-lg font-bold text-accent">{promoCode || 'Не установлен'}</p>
-                </div>
-                <Button
-                  onClick={() => setEditingPromo(true)}
-                  variant="outline"
-                >
-                  <Icon name="Pencil" size={16} className="mr-2" />
-                  Изменить
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="neon-box-purple">
-          <CardHeader>
-            <CardTitle>Добавить трек в плейлист</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                placeholder="Название трека"
-                value={newTrack.track_name}
-                onChange={(e) => setNewTrack({ ...newTrack, track_name: e.target.value })}
-                className="bg-card border-secondary/30"
-              />
-              <Input
-                placeholder="Исполнитель"
-                value={newTrack.artist}
-                onChange={(e) => setNewTrack({ ...newTrack, artist: e.target.value })}
-                className="bg-card border-secondary/30"
-              />
-            </div>
-            <Button onClick={addToPlaylist} className="neon-box-purple">
-              <Icon name="Plus" className="mr-2" size={16} />
-              Добавить в плейлист
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="neon-box-orange">
-          <CardHeader>
-            <CardTitle>Управление тарифами</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {tariffs.map((tariff) => (
-              <div
-                key={tariff.tariff_id}
-                className="p-4 rounded-lg bg-card border border-accent/30 space-y-3"
-              >
-                {editingTariff?.tariff_id === tariff.tariff_id ? (
-                  <div className="space-y-3">
-                    <Input
-                      placeholder="Название тарифа"
-                      value={editingTariff.name}
-                      onChange={(e) =>
-                        setEditingTariff({ ...editingTariff, name: e.target.value })
-                      }
-                      className="bg-card border-accent/30"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        type="number"
-                        placeholder="Цена"
-                        value={editingTariff.price}
-                        onChange={(e) =>
-                          setEditingTariff({ ...editingTariff, price: parseInt(e.target.value) })
-                        }
-                        className="bg-card border-accent/30"
-                      />
-                      <Input
-                        placeholder="Время (5 минут)"
-                        value={editingTariff.time_estimate}
-                        onChange={(e) =>
-                          setEditingTariff({ ...editingTariff, time_estimate: e.target.value })
-                        }
-                        className="bg-card border-accent/30"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => updateTariff(editingTariff)}
-                        className="neon-box-cyan"
-                        size="sm"
-                      >
-                        Сохранить
-                      </Button>
-                      <Button
-                        onClick={() => setEditingTariff(null)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Отмена
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold text-lg">{tariff.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tariff.time_estimate} • {tariff.price} ₽
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => setEditingTariff(tariff)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Icon name="Pencil" size={16} />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="neon-box-orange">
-          <CardHeader>
-            <CardTitle>Заказы треков ({orders.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="p-4 rounded-lg bg-card border border-accent/30 space-y-2"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold text-lg text-primary">{order.track_name}</p>
-                      <p className="text-muted-foreground">{order.artist}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-accent font-bold">{order.price} ₽</p>
-                      <p className="text-sm text-muted-foreground">{order.tariff}</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{order.customer_name}</span>
-                    <span className="text-muted-foreground">{order.customer_phone}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Статус: {order.status}</span>
-                    <span>Оплата: {order.payment_status}</span>
-                  </div>
-                  {order.payment_method === 'cash' && (
-                    <div className="flex items-center gap-2 text-xs p-2 rounded bg-accent/10 border border-accent/30">
-                      <Icon name="Wallet" size={14} className="text-accent" />
-                      <span className="text-accent font-semibold">Оплата наличными</span>
-                    </div>
-                  )}
-                  {order.has_celebration && (
-                    <div className="mt-2 p-2 rounded bg-secondary/10 border border-secondary/30">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Icon name="PartyPopper" size={16} className="text-secondary" />
-                        <span className="text-sm font-semibold text-secondary">
-                          {order.celebration_category === 'birthday' ? 'День рождения' : 'Другой праздник'}
-                        </span>
-                      </div>
-                      <div className="text-sm space-y-1">
-                        {order.celebration_category === 'birthday' && order.celebration_text && (
-                          <p className="text-muted-foreground">
-                            <span className="font-medium">Имя именинника:</span> {order.celebration_text}
-                          </p>
-                        )}
-                        {order.celebration_category === 'other' && (
-                          <>
-                            {order.celebration_type && (
-                              <p className="text-muted-foreground">
-                                <span className="font-medium">Праздник:</span> {order.celebration_type}
-                              </p>
-                            )}
-                            {order.celebration_text && (
-                              <p className="text-muted-foreground">
-                                <span className="font-medium">Доп. текст:</span> {order.celebration_text}
-                              </p>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                    {order.status === 'pending' && (
-                      <Button
-                        onClick={() => updateOrderStatus(order.id, 'completed', order.payment_status)}
-                        size="sm"
-                        className="neon-box-cyan"
-                      >
-                        <Icon name="Check" size={16} className="mr-1" />
-                        Выполнено
-                      </Button>
-                    )}
-                    {order.status === 'completed' && (
-                      <Button
-                        onClick={() => updateOrderStatus(order.id, 'pending', order.payment_status)}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Icon name="RotateCcw" size={16} className="mr-1" />
-                        Вернуть
-                      </Button>
-                    )}
-                    {order.payment_status === 'unpaid' && (
-                      <Button
-                        onClick={() => updateOrderStatus(order.id, order.status, 'paid')}
-                        size="sm"
-                        variant="outline"
-                        className="border-green-500 text-green-500 hover:bg-green-500/10"
-                      >
-                        <Icon name="DollarSign" size={16} className="mr-1" />
-                        Оплачено
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => deleteOrder(order.id)}
-                      size="sm"
-                      variant="destructive"
-                      className="ml-auto"
-                    >
-                      <Icon name="Trash2" size={16} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {orders.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">Заказов пока нет</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <AdminOrdersList
+          orders={orders}
+          updateOrderStatus={updateOrderStatus}
+          deleteOrder={deleteOrder}
+        />
       </div>
     </div>
   );
