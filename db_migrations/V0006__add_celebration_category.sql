@@ -1,0 +1,1 @@
+ALTER TABLE track_orders ADD COLUMN celebration_category VARCHAR(20) DEFAULT 'birthday';

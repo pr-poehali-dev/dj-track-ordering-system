@@ -46,6 +46,7 @@ export default function Index() {
     customer_phone: '',
     tariff: 'standard',
     has_celebration: false,
+    celebration_category: 'birthday',
     celebration_text: '',
     celebration_type: '',
     payment_method: 'online'
@@ -123,6 +124,7 @@ export default function Index() {
           customer_phone: '',
           tariff: 'standard',
           has_celebration: false,
+          celebration_category: 'birthday',
           celebration_text: '',
           celebration_type: '',
           payment_method: 'online'
@@ -306,39 +308,69 @@ export default function Index() {
                 </div>
                 {orderForm.has_celebration && (
                   <div className="space-y-3 ml-6">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">
-                        Имя
-                      </Label>
-                      <Input
-                        placeholder="Например: Алина"
-                        value={orderForm.celebration_text}
-                        onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
-                        className="bg-card border-secondary/30"
-                        disabled={!isAcceptingOrders}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">
-                        Тип праздника (необязательно)
-                      </Label>
-                      <Input
-                        placeholder="Например: День рождения, Свадьба, Юбилей"
-                        value={orderForm.celebration_type}
-                        onChange={(e) => setOrderForm({ ...orderForm, celebration_type: e.target.value })}
-                        className="bg-card border-secondary/30"
-                        disabled={!isAcceptingOrders}
-                      />
-                    </div>
-                    <div className="space-y-2 p-2 rounded bg-secondary/5 border border-secondary/20">
-                      <div className="flex items-start gap-2">
-                        <Icon name="Info" size={14} className="text-secondary mt-0.5 flex-shrink-0" />
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <p><span className="font-semibold text-secondary">День рождения:</span> Диджей поздравит именинника от всех гостей</p>
-                          <p><span className="font-semibold text-secondary">Другой праздник:</span> Укажите тип праздника, диджей придумает поздравление</p>
+                    <RadioGroup
+                      value={orderForm.celebration_category}
+                      onValueChange={(value) => setOrderForm({ ...orderForm, celebration_category: value, celebration_text: '', celebration_type: '' })}
+                      disabled={!isAcceptingOrders}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="birthday" id="birthday" />
+                        <Label htmlFor="birthday" className="cursor-pointer text-sm font-semibold">
+                          День рождения
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="other" id="other" />
+                        <Label htmlFor="other" className="cursor-pointer text-sm font-semibold">
+                          Другой праздник
+                        </Label>
+                      </div>
+                    </RadioGroup>
+
+                    {orderForm.celebration_category === 'birthday' && (
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">
+                          Имя именинника
+                        </Label>
+                        <Input
+                          placeholder="Например: Алина"
+                          value={orderForm.celebration_text}
+                          onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
+                          className="bg-card border-secondary/30"
+                          disabled={!isAcceptingOrders}
+                        />
+                      </div>
+                    )}
+
+                    {orderForm.celebration_category === 'other' && (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label className="text-sm text-muted-foreground">
+                            Какой праздник?
+                          </Label>
+                          <Input
+                            placeholder="Например: Свадьба, Юбилей, Годовщина"
+                            value={orderForm.celebration_type}
+                            onChange={(e) => setOrderForm({ ...orderForm, celebration_type: e.target.value })}
+                            className="bg-card border-secondary/30"
+                            disabled={!isAcceptingOrders}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm text-muted-foreground">
+                            Дополнительный текст (необязательно)
+                          </Label>
+                          <Textarea
+                            placeholder="Например: От коллег по работе, С 25-летием компании"
+                            value={orderForm.celebration_text}
+                            onChange={(e) => setOrderForm({ ...orderForm, celebration_text: e.target.value })}
+                            className="bg-card border-secondary/30"
+                            rows={2}
+                            disabled={!isAcceptingOrders}
+                          />
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>

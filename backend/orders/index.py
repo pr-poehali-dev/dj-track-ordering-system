@@ -54,14 +54,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         tariff = body_data.get('tariff')
         price = body_data.get('price')
         has_celebration = body_data.get('has_celebration', False)
+        celebration_category = body_data.get('celebration_category', 'birthday')
         celebration_text = body_data.get('celebration_text', '')
         celebration_type = body_data.get('celebration_type', '')
         payment_method = body_data.get('payment_method', 'online')
         
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
-                "INSERT INTO track_orders (track_name, artist, customer_name, customer_phone, tariff, price, has_celebration, celebration_text, celebration_type, payment_method) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                (track_name, artist, customer_name, customer_phone, tariff, price, has_celebration, celebration_text, celebration_type, payment_method)
+                "INSERT INTO track_orders (track_name, artist, customer_name, customer_phone, tariff, price, has_celebration, celebration_category, celebration_text, celebration_type, payment_method) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                (track_name, artist, customer_name, customer_phone, tariff, price, has_celebration, celebration_category, celebration_text, celebration_type, payment_method)
             )
             new_order = cur.fetchone()
             conn.commit()

@@ -27,6 +27,7 @@ interface Order {
   payment_status: string;
   payment_method?: string;
   has_celebration?: boolean;
+  celebration_category?: string;
   celebration_text?: string;
   celebration_type?: string;
   created_at: string;
@@ -430,18 +431,29 @@ export default function Admin() {
                     <div className="mt-2 p-2 rounded bg-secondary/10 border border-secondary/30">
                       <div className="flex items-center gap-2 mb-1">
                         <Icon name="PartyPopper" size={16} className="text-secondary" />
-                        <span className="text-sm font-semibold text-secondary">Поздравление</span>
+                        <span className="text-sm font-semibold text-secondary">
+                          {order.celebration_category === 'birthday' ? 'День рождения' : 'Другой праздник'}
+                        </span>
                       </div>
                       <div className="text-sm space-y-1">
-                        {order.celebration_text && (
+                        {order.celebration_category === 'birthday' && order.celebration_text && (
                           <p className="text-muted-foreground">
-                            <span className="font-medium">Имя:</span> {order.celebration_text}
+                            <span className="font-medium">Имя именинника:</span> {order.celebration_text}
                           </p>
                         )}
-                        {order.celebration_type && (
-                          <p className="text-muted-foreground">
-                            <span className="font-medium">Праздник:</span> {order.celebration_type}
-                          </p>
+                        {order.celebration_category === 'other' && (
+                          <>
+                            {order.celebration_type && (
+                              <p className="text-muted-foreground">
+                                <span className="font-medium">Праздник:</span> {order.celebration_type}
+                              </p>
+                            )}
+                            {order.celebration_text && (
+                              <p className="text-muted-foreground">
+                                <span className="font-medium">Доп. текст:</span> {order.celebration_text}
+                              </p>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
