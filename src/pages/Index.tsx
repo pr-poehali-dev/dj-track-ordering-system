@@ -139,6 +139,13 @@ export default function Index() {
           promo_code: ''
         });
         setPromoApplied(false);
+      } else if (response.status === 400) {
+        const errorData = await response.json();
+        toast({ 
+          title: 'Заказ отклонён', 
+          description: errorData.error || 'Этот трек не может быть заказан по правилам площадки',
+          variant: 'destructive' 
+        });
       } else {
         toast({ title: 'Ошибка создания заказа', variant: 'destructive' });
       }
