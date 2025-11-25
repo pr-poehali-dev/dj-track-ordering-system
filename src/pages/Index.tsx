@@ -46,7 +46,8 @@ export default function Index() {
     customer_phone: '',
     tariff: 'standard',
     has_celebration: false,
-    celebration_text: ''
+    celebration_text: '',
+    payment_method: 'online'
   });
   const { toast } = useToast();
 
@@ -121,7 +122,8 @@ export default function Index() {
           customer_phone: '',
           tariff: 'standard',
           has_celebration: false,
-          celebration_text: ''
+          celebration_text: '',
+          payment_method: 'online'
         });
       } else {
         toast({ title: 'Ошибка создания заказа', variant: 'destructive' });
@@ -320,6 +322,44 @@ export default function Index() {
                 )}
               </div>
 
+              <div className="space-y-2 p-4 rounded-lg border border-primary/30 bg-card/50">
+                <Label className="font-semibold">Способ оплаты</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="payment-online"
+                      checked={orderForm.payment_method === 'online'}
+                      onCheckedChange={(checked) => 
+                        checked && setOrderForm({ ...orderForm, payment_method: 'online' })
+                      }
+                      disabled={!isAcceptingOrders}
+                    />
+                    <Label htmlFor="payment-online" className="cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <Icon name="CreditCard" className="text-primary" size={20} />
+                        <span>Онлайн оплата (сразу)</span>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="payment-cash"
+                      checked={orderForm.payment_method === 'cash'}
+                      onCheckedChange={(checked) => 
+                        checked && setOrderForm({ ...orderForm, payment_method: 'cash' })
+                      }
+                      disabled={!isAcceptingOrders}
+                    />
+                    <Label htmlFor="payment-cash" className="cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Wallet" className="text-primary" size={20} />
+                        <span>Наличными диджею</span>
+                      </div>
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-between items-center p-4 rounded-lg bg-card border border-primary/30">
                 <span className="font-semibold">Итого к оплате:</span>
                 <span className="text-2xl font-bold text-accent">
@@ -333,7 +373,7 @@ export default function Index() {
                 size="lg"
                 disabled={!isAcceptingOrders}
               >
-                {isAcceptingOrders ? 'Заказать и оплатить' : 'Прием заказов приостановлен'}
+                {isAcceptingOrders ? (orderForm.payment_method === 'online' ? 'Заказать и оплатить' : 'Отправить заказ') : 'Прием заказов приостановлен'}
               </Button>
             </form>
           </CardContent>

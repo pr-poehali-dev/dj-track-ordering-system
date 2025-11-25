@@ -1,0 +1,1 @@
+ALTER TABLE track_orders ADD COLUMN payment_method VARCHAR(20) DEFAULT 'online';

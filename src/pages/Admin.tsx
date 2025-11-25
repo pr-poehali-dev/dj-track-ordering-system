@@ -25,6 +25,7 @@ interface Order {
   price: number;
   status: string;
   payment_status: string;
+  payment_method?: string;
   has_celebration?: boolean;
   celebration_text?: string;
   created_at: string;
@@ -418,6 +419,12 @@ export default function Admin() {
                     <span>Статус: {order.status}</span>
                     <span>Оплата: {order.payment_status}</span>
                   </div>
+                  {order.payment_method === 'cash' && (
+                    <div className="flex items-center gap-2 text-xs p-2 rounded bg-accent/10 border border-accent/30">
+                      <Icon name="Wallet" size={14} className="text-accent" />
+                      <span className="text-accent font-semibold">Оплата наличными</span>
+                    </div>
+                  )}
                   {order.has_celebration && (
                     <div className="mt-2 p-2 rounded bg-secondary/10 border border-secondary/30">
                       <div className="flex items-center gap-2 mb-1">
